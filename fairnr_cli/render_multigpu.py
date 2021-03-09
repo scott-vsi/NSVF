@@ -116,7 +116,14 @@ def _main(args, output_file):
             gen_timer.stop(500)
             wps_meter.update(500)
             t.log({'wps': round(wps_meter.avg)})
-            
+
+    # save_images is really save_video for this shard. if combine_output=True,
+    # it doesn't work if all the frames don't have the same shape (number of
+    # channels). merge_videos (which combines the video from each shard) doesn't
+    # work if combine_output=False. i can't figure out how to get this to run on
+    # a single shard
+    return
+
     timestamp = generator.save_images(
         output_files, steps='shard{}'.format(shard_id), combine_output=args.render_combine_output)
 

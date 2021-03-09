@@ -94,11 +94,15 @@ class NSVFModel(NeRFModel):
         all_results['missed'] = fill_in((fullsize, ), hits, all_results['missed'], 1.0).view(S, V, P)
         all_results['colors'] = fill_in((fullsize, 3), hits, all_results['colors'], 0.0).view(S, V, P, 3)
         all_results['depths'] = fill_in((fullsize, ), hits, all_results['depths'], 0.0).view(S, V, P)
-        
+        all_results['variances'] = fill_in((fullsize, ), hits, all_results['variances'], 0.0).view(S, V, P)
+
         BG_DEPTH = self.field.bg_color.depth
         bg_color = self.field.bg_color(all_results['colors'])
         all_results['colors'] += all_results['missed'].unsqueeze(-1) * bg_color.reshape(fullsize, 3).view(S, V, P, 3)
-        all_results['depths'] += all_results['missed'] * BG_DEPTH
+        all_results['variances'] += all_results['missed']
+        all_results['depths'] += all_results['missed']
+        #all_results['variances'] += all_results['missed'] * (BG_DEPTH - all_results['depths'])**2
+        #all_results['depths'] += all_results['missed'] * BG_DEPTH
         if 'normal' in all_results:
             all_results['normal'] = fill_in((fullsize, 3), hits, all_results['normal'], 0.0).view(S, V, P, 3)
         if 'voxel_depth' in all_results:

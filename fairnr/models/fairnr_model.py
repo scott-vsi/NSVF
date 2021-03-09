@@ -220,6 +220,9 @@ class BaseModel(BaseFairseqModel):
         if output is None:
             assert self.cache is not None, "need to run forward-pass"
             output = self.cache  # make sure to run forward-pass.
+            # output.keys():
+            #   probs, depths, max_depths, min_depths, missed, ae, variances, colors,
+            #   feat_n2, regz-term, voxel_edges, voxel_depth, other_logs, samples
         sample.update(output['samples'])
 
         images = {}
@@ -228,8 +231,11 @@ class BaseModel(BaseFairseqModel):
         if 'coarse' in output:  # hierarchical sampling
             images = self._visualize(images, sample, output['coarse'], [img_id, shape, view, width, 'coarse'])
         
+        def to_rescale(tag):
+            return not (tag.startswith('render_depth') or tag.startswith('render_variance') or
+                        tag.startswith('render_missed'))
         images = {
-            tag: recover_image(width=width, **images[tag]) 
+            tag: recover_image(width=width, rescale=to_rescale(tag), **images[tag]) 
                 for tag in images if images[tag] is not None
         }
         return images
@@ -250,6 +256,16 @@ class BaseModel(BaseFairseqModel):
                 'img': output['depths'][shape, view], 
                 'min_val': min_depth, 
                 'max_val': max_depth}
+            min_variance, max_variance = output['variances'].min(), output['variances'].max()
+            images['{}_variance/{}:HWC'.format(name, img_id)] = {
+                'img': output['variances'][shape, view],
+                'min_val': min_variance,
+                'max_val': max_variance}
+            min_missed, max_missed = output['missed'].min(), output['missed'].max()
+            images['{}_missed/{}:HWC'.format(name, img_id)] = {
+                'img': output['missed'][shape, view],
+                'min_val': min_missed,
+                'max_val': max_missed}
             normals = compute_normal_map(
                 sample['ray_start'][shape, view].float(),
                 sample['ray_dir'][shape, view].float(),

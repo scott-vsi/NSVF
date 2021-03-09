@@ -203,13 +203,15 @@ class VolumeRenderer(Renderer):
             probs = probs * global_weights
 
         depth = (sampled_depth * probs).sum(-1)
+        variance = (probs * (sampled_depth - depth[:,None])**2).sum(-1) # depth is avg(depth)
         missed = 1 - probs.sum(-1)
         
         results.update({
             'probs': probs, 'depths': depth, 
             'max_depths': sampled_depth.masked_fill(hits.eq(0), -1).max(1).values,
             'min_depths': sampled_depth.min(1).values,
-            'missed': missed, 'ae': accumulated_evaluations
+            'missed': missed, 'ae': accumulated_evaluations,
+            'variances': variance
         })
         if original_depth is not None:
             results['z'] = (original_depth * probs).sum(-1)

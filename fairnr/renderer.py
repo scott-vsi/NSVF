@@ -198,6 +198,10 @@ class NeuralRenderer(object):
                                     (images[key][:, 3:] * 255).cpu().int().numpy())
                                 # from fairseq import pdb; pdb.set_trace()
 
+                            elif type in ('depth', 'variance', 'missed'):
+                                imageio.imwrite(os.path.join(prefix, image_name + '.tif'), images[key])
+                                image_names.append(os.path.join(prefix, image_name + '.tif'))
+
                             else:
                                 image = images[key].permute(2, 0, 1) \
                                     if images[key].dim() == 3 else torch.stack(3*[images[key]], 0)        

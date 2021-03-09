@@ -263,7 +263,7 @@ def colormap(dz):
     # return plt.cm.gray(dz)
 
 
-def recover_image(img, min_val=-1, max_val=1, width=512, bg=None, weight=None, raw=False):
+def recover_image(img, min_val=-1, max_val=1, width=512, bg=None, weight=None, raw=False, rescale=True):
     if raw: return img
 
     sizes = img.size()
@@ -273,9 +273,10 @@ def recover_image(img, min_val=-1, max_val=1, width=512, bg=None, weight=None, r
     if len(sizes) == 1 and (bg is not None):
         bg_mask = img.eq(bg)[:, None].type_as(img)
 
-    img = ((img - min_val) / (max_val - min_val)).clamp(min=0, max=1)
-    if len(sizes) == 1:
-        img = torch.from_numpy(colormap(img.numpy())[:, :3])
+    if rescale:
+        img = ((img - min_val) / (max_val - min_val)).clamp(min=0, max=1)
+        if len(sizes) == 1:
+            img = torch.from_numpy(colormap(img.numpy())[:, :3])
     if weight is not None:
         weight = weight.float().to('cpu')
         img = img * weight[:, None]
