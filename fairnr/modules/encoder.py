@@ -474,7 +474,7 @@ class SparseVoxelEncoder(Encoder):
         full_grids = full_grids.reshape(A, B, C, bits, bits, bits)
         full_grids = full_grids.permute(0, 3, 1, 4, 2, 5).reshape(A * bits, B * bits, C * bits)
         full_grids = 1 - full_grids
-        np.savez_compressed('points.npz', full_grids.cpu().numpy())
+        #np.savez_compressed('points.npz', full_grids.cpu().numpy())
 
         # marching cube
         from skimage import measure
@@ -649,8 +649,8 @@ class SparseVoxelEncoder(Encoder):
             free_energy = -torch.relu(field_outputs['sigma']).reshape(-1, bits ** 3)
             
             # return scores
-            return free_energy
-            #return torch.exp(free_energy)
+            #return free_energy
+            return torch.exp(free_energy)
 
         return torch.cat([get_scores_once(feats[i: i + chunk_size], points[i: i + chunk_size], values) 
             for i in range(0, points.size(0), chunk_size)], 0)
