@@ -164,6 +164,7 @@ class NSVFModel(NeRFModel):
         self.encoder.clean_runtime_caches()
         if reset:
             self.encoder.reset_runtime_caches()
+        torch.cuda.empty_cache() # cache release after Model do all things
 
 @register_model_architecture("nsvf", "nsvf_base")
 def base_architecture(args):
